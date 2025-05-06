@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
-
+import json
 # # Command Line Conversational agent
-import datetime
+from datetime import datetime, timezone
 
 import requests
 from langchain.agents import AgentExecutor
@@ -49,9 +49,17 @@ def get_current_temperature(latitude: float, longitude: float) -> dict:
     else:
         raise Exception(f"API Request failed with status code: {response.status_code}")
 
-    current_utc_time = datetime.datetime.utcnow()
-    time_list = [datetime.datetime.fromisoformat(time_str.replace('Z', '+00:00')) for time_str in
-                 results['hourly']['time']]
+    #print(json.dumps(results, indent=2, sort_keys=True, ensure_ascii=False))
+
+    current_utc_time = datetime.now(timezone.utc)
+    #print("Current UTC time:", current_utc_time)
+    time_list = [
+        # 1) replace the “Z” with “+00:00” → fromisoformat yields tz‐aware dt
+        # 2) astimezone(timezone.utc) ensures tzinfo is exactly timezone.utc
+        datetime.fromisoformat(t.replace("Z", "+00:00"))
+                .astimezone(timezone.utc)
+        for t in results["hourly"]["time"]
+    ]
     temperature_list = results['hourly']['temperature_2m']
 
     closest_time_index = min(range(len(time_list)), key=lambda i: abs(time_list[i] - current_utc_time))
@@ -111,5 +119,5 @@ agent_executor.invoke({"input": "my name is bob"})
 
 agent_executor.invoke({"input": "whats my name"})
 
-agent_executor.invoke({"input": "whats the weather in sf?"})
+agent_executor.invoke({"input": "whats the weather in Acton MA?"})
 
