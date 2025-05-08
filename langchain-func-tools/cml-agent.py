@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-# TODO: add logging and add command line argument
 import argparse
 import json
 import warnings
