@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
+# TODO: add logging and add command line argument
+import argparse
 import json
+import warnings
 # # Command Line Conversational agent
 from datetime import datetime, timezone
 
@@ -95,7 +98,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 
 prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are helpful but sassy assistant"),
+    ("system", "You are helpful but sassy assistant. Use the tools to answer the questions. If the tools are not applicable, answer the question based on your own knowldge."),
     MessagesPlaceholder(variable_name="chat_history"),
     ("user", "{input}"),
     MessagesPlaceholder(variable_name="agent_scratchpad")
@@ -109,15 +112,35 @@ agent_chain = RunnablePassthrough.assign(
     agent_scratchpad=lambda x: format_to_openai_functions(x["intermediate_steps"])
 ) | prompt | model | OpenAIFunctionsAgentOutputParser()
 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 from langchain.memory import ConversationBufferMemory
 
 memory = ConversationBufferMemory(return_messages=True, memory_key="chat_history")
 
-agent_executor = AgentExecutor(agent=agent_chain, tools=tools, verbose=True, memory=memory)
+agent_executor = AgentExecutor(agent=agent_chain, tools=tools, memory=memory)
 
-agent_executor.invoke({"input": "my name is bob"})
 
-agent_executor.invoke({"input": "whats my name"})
+parser = argparse.ArgumentParser(
+    description="Chat with LLM with a question, feel free to introduce yourself"
+)
+parser.add_argument(
+    "--question",
+    required=True,
+    help="The question string to be processed"
+)
+parser.add_argument(
+    "--intro",
+    default="john",
+    help="Introductory name or phrase (defaults to 'john')"
+)
 
-agent_executor.invoke({"input": "whats the weather in Acton MA?"})
+args = parser.parse_args()
+question = args.question
+intro = args.intro
 
+
+results = agent_executor.invoke({"input": "My name is " +intro})
+print("LLM: "+results["output"])
+print(f"You asked: {question}")
+results = agent_executor.invoke({"input": question})
+print("LLM:" + results["output"])
