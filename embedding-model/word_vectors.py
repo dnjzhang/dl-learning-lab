@@ -16,8 +16,8 @@ logger.setLevel(logging.DEBUG)
 import gensim.downloader as api
 import numpy as np
 
-#model_name="glove-wiki-gigaword-100"
-model_name="word2vec-google-news-300"
+model_name="glove-wiki-gigaword-100"
+#model_name="word2vec-google-news-300"
 logger.info(f"Loading word vectors model {model_name}.")
 word_vectors = api.load(model_name)
 
@@ -34,6 +34,19 @@ words = ["king", "princess", "monarch", "throne", "crown",
 # Get word vectors
 vectors = np.array([word_vectors[word] for word in words])
 
+print( "Show semantic add and subtraction: ")
+analogy_vec = word_vectors['king'] + word_vectors['woman'] - word_vectors['man']
+# then find the nearest word(s)
+result = word_vectors.similar_by_vector(analogy_vec, topn=3)
+print(result)
+
+print("Use KeyedVectors for similarity search:")
+result = word_vectors.most_similar(positive=['king','woman'],
+                          negative=['man'],
+                          topn=3)
+print(result)
+#print(type(word_vectors))
+
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
@@ -48,5 +61,7 @@ for i, word in enumerate(words):
 axes.set_title('PCA of Word Embeddings')
 plt.show(block=False)   # return immediately
 # do whatever you like here, then…
-plt.pause(10)            # keep the window open for 5 seconds
+plt.pause(5)            # keep the window open for 5 seconds
 plt.close()             # close it programmatically
+
+
