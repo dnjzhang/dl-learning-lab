@@ -73,11 +73,6 @@ class Agent:
         return {'messages': results}
 
 def print_message(prefix, message):
-    # print(
-    #     f"{message.type}: {message.content}"
-    #     if isinstance(message, SystemMessage)
-    #     else f"{message.type}: {message.content.content}"
-    # )
     print(f"{prefix}>> Message type: {type(message)}/{message.type}")
     print(f"\n{prefix}>> Content: {message.content}")
     print(f"\n{prefix}>> Additional Keywords:")
@@ -102,8 +97,6 @@ with SqliteSaver.from_conn_string("l4-checkpoint.sqlite") as memory:
     messages = [HumanMessage(content="What is the weather in sf?")]
 
     thread1 = {"configurable": {"thread_id": "1"}}
-
-    from pprint import pprint
 
     for event in abot.graph.stream({"messages": messages}, thread1):
         snapshot = abot.graph.get_state(thread1)
