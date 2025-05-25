@@ -88,8 +88,8 @@ def print_message(prefix, message):
     #print(json.dumps(message.response_metadata, indent=2))
 
 
-with SqliteSaver.from_conn_string(":memory:") as memory:
-
+#with SqliteSaver.from_conn_string(":memory:") as memory:
+with SqliteSaver.from_conn_string("l4-checkpoint.sqlite") as memory:
     prompt = """You are a smart research assistant. Use the search engine to look up information. \
     You are allowed to make multiple calls (either together or in sequence). \
     Only look up information when you are sure of what you want. \
