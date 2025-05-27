@@ -13,7 +13,7 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # End of Local Environment setup
 
 from langgraph.graph import StateGraph, END
@@ -74,17 +74,19 @@ class Agent:
 
 def print_message(prefix, message):
     print(f"{prefix}>> Message type: {type(message)}/{message.type}")
+    print(f"{prefix}>> Message ID: {message.id}")
     print(f"\n{prefix}>> Content: {message.content}")
     print(f"\n{prefix}>> Additional Keywords:")
     print(json.dumps(message.additional_kwargs, indent=2))
 
     # Response Metadata (token usage, model info, etc)
-    # print("\n🔍 Response Metadata:")
+    #print("\n🔍 Response Metadata:")
     #print(json.dumps(message.response_metadata, indent=2))
 
 
-#with SqliteSaver.from_conn_string(":memory:") as memory:
-with SqliteSaver.from_conn_string("l4-checkpoint.sqlite") as memory:
+with SqliteSaver.from_conn_string(":memory:") as memory:
+# Replace following line with the above line to use a persistent context.
+#with SqliteSaver.from_conn_string("l4-checkpoint.sqlite") as memory:
     prompt = """You are a smart research assistant. Use the search engine to look up information. \
     You are allowed to make multiple calls (either together or in sequence). \
     Only look up information when you are sure of what you want. \
@@ -100,9 +102,11 @@ with SqliteSaver.from_conn_string("l4-checkpoint.sqlite") as memory:
 
     for event in abot.graph.stream({"messages": messages}, thread1):
         snapshot = abot.graph.get_state(thread1)
+        logger.debug("state text: " + str(snapshot))
         for msg in snapshot.values['messages']:
             print_message("STATE", msg)
         print("==")
         for v in event.values():
-            print_message("MSG", v['messages'][-1])
+            #print_message("MSG", v['messages'][-1])
+            print("")
         print("---")
