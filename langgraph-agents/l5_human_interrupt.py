@@ -116,7 +116,7 @@ model = ChatOpenAI(api_key=properties.getApiKey(), model="gpt-4o-mini")
 with  SqliteSaver.from_conn_string(":memory:") as memory:
     abot = Agent(model, [tool], system=prompt, checkpointer=memory)
 
-    messages = [HumanMessage(content="What is the weather in Boston, MA?")]
+    messages = [HumanMessage(content="What is the weather in SF?")]
     thread = {"configurable": {"thread_id": "1"}}
     msgEnv = {"messages": messages}
     while True:
