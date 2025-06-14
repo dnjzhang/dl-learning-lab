@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
+import json
+
 from langchain_openai import ChatOpenAI
 
 # # Lesson 2: Baseline Email Assistant, rewritten from lesson2.py
@@ -254,9 +256,14 @@ print(f"Generate graph-agent.png.")
 email_file = "test-email1.txt"
 try:
     with open(email_file, 'r', encoding='utf-8') as file:
-        text_content = file.read()
+        email_content = json.load(file)
 except FileNotFoundError:
     print("File not found!")
 except IOError as e:
     print(f"Error reading file: {e}")
 
+print(email_content)
+response = email_agent.invoke({"email_input": email_content})
+
+for m in response["messages"]:
+    m.pretty_print()
