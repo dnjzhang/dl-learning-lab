@@ -250,3 +250,21 @@ png_data = email_agent.get_graph(xray=True).draw_mermaid_png()
 with open('graph-agent.png', 'wb') as f:
     f.write(png_data)
 print(f"Generate graph-agent.png.")
+
+import json
+email_sample_file= "test-email1.json"
+
+try:
+    with open(email_sample_file, 'r') as file:
+        email_input = json.load(file)
+except json.JSONDecodeError as e:
+    print(f"JSON parsing error: {e}")
+except FileNotFoundError:
+    print("File not found!")
+
+
+response = email_agent.invoke({"email_input": email_input})
+
+
+for m in response["messages"]:
+    m.pretty_print()
