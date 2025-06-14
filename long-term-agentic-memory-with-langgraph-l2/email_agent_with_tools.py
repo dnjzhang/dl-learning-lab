@@ -252,7 +252,7 @@ with open('graph-agent.png', 'wb') as f:
 print(f"Generate graph-agent.png.")
 
 import json
-email_sample_file= "test-email1.json"
+email_sample_file= "test-email2.json"
 
 try:
     with open(email_sample_file, 'r') as file:
