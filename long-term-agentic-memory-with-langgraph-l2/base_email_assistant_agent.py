@@ -21,7 +21,7 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Sample profile
 profile = {
@@ -162,13 +162,14 @@ agent = create_react_agent(
 )
 
 # test react agent that can work with tools
-#response = agent.invoke(
-#    {"messages": [{
-#        "role": "user",
-#        "content": "what is my availability for tuesday?"
-#    }]}
-#)
-#print(response["messages"][-1].pretty_print())
+if logger.isEnabledFor(logging.DEBUG):
+    response = agent.invoke(
+         {"messages": [{
+            "role": "user",
+            "content": "what is my availability for tuesday?"
+        }]}
+    )
+    print(response["messages"][-1].pretty_print())
 
 from langgraph.graph import add_messages
 
@@ -246,25 +247,59 @@ email_agent = email_agent.add_edge(START, "triage_router")
 email_agent = email_agent.compile()
 
 #show the logical diagram
-png_data = email_agent.get_graph(xray=True).draw_mermaid_png()
-with open('graph-agent.png', 'wb') as f:
-    f.write(png_data)
-print(f"Generate graph-agent.png.")
+if logger.isEnabledFor(logging.DEBUG):
+    png_data = email_agent.get_graph(xray=True).draw_mermaid_png()
+    with open('graph-agent.png', 'wb') as f:
+        f.write(png_data)
+    print(f"Generate graph-agent.png.")
 
+import argparse
 import json
-email_sample_file= "test-email2.json"
+from types import SimpleNamespace
 
-try:
-    with open(email_sample_file, 'r') as file:
-        email_input = json.load(file)
-except json.JSONDecodeError as e:
-    print(f"JSON parsing error: {e}")
-except FileNotFoundError:
-    print("File not found!")
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Email Agent with command line argument for sample file')
+    parser.add_argument('--email_file',
+                        type=str,
+                        required=True,
+                        help='Path to the email sample JSON file')
 
-
-response = email_agent.invoke({"email_input": email_input})
+    return parser.parse_args()
 
 
-for m in response["messages"]:
-    m.pretty_print()
+def read_email_json(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            # Parse JSON and convert to SimpleNamespace for property-like access
+            email_data = json.load(file)
+            return email_data
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON format in '{file_path}': {e}")
+        return None
+    except IOError as e:
+        print(f"Error reading file: {e}")
+        return None
+
+
+def main():
+    # Parse command line arguments
+    args = parse_arguments()
+
+    # Read and parse the JSON file
+    email_data = read_email_json(args.email_file)
+    if email_data is None:
+        return
+
+    response = email_agent.invoke({"email_input": email_data})
+    for m in response["messages"]:
+      m.pretty_print()
+
+if __name__ == "__main__":
+    main()
+
+
+
+
