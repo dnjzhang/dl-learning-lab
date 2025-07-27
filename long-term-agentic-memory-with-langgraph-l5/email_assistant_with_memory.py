@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
+import argparse
+
 from langchain_openai import ChatOpenAI
 
 from dotenv import load_dotenv
@@ -20,24 +22,8 @@ prompt_instructions = {
     },
     "agent_instructions": "Use these tools when appropriate to help manage John's tasks efficiently."
 }
-#%%
-alice_smith_email = {
-    "author": "Alice Smith <alice.smith@company.com>",
-    "to": "John Doe <john.doe@company.com>",
-    "subject": "Quick question about API documentation",
-    "email_thread": """
-Hi John,
 
-I was reviewing the API documentation for the new authentication service and noticed a few endpoints seem to be missing from the specs. Could you help clarify if this was intentional or if we should update the docs?
 
-Specifically, I'm looking at:
-- /auth/refresh
-- /auth/validate
-
-Thanks!
-Alice""",
-}
-#%%
 from langgraph.store.memory import InMemoryStore
 #%%
 store = InMemoryStore(
@@ -264,12 +250,11 @@ def schedule_meeting(
     # Placeholder response - in real app would check calendar and schedule
     return f"Meeting '{subject}' scheduled for {preferred_day} with {len(attendees)} attendees"
 
-#%%
 @tool
 def check_calendar_availability(day: str) -> str:
     """Check calendar availability for a given day."""
     # Placeholder response - in real app would check actual calendar
-    return f"Available times on {day}: 9:00 AM, 2:00 PM, 4:00 PM"
+    return f"Available times on {day}: 9:00 AM, 2:00 PM, 4:00 PM except Friday"
 #%%
 from langmem import create_manage_memory_tool, create_search_memory_tool
 #%%
@@ -359,15 +344,57 @@ email_agent = email_agent.add_node("response_agent", response_agent)
 email_agent = email_agent.add_edge(START, "triage_router")
 email_agent = email_agent.compile(store=store)
 
-# Debug
-response = email_agent.invoke({"email_input": alice_smith_email}, config={"configurable": {"langgraph_user_id": "joe"}})
+def setup_argument_parser():
+    parser = argparse.ArgumentParser(description='Process email with configurable recipient.')
+    parser.add_argument(
+        '--sender',
+        help='Name of the sample email sender (default: Alice)'
+    )
+    return parser
 
-from pprint import pprint
-print("\nEmail input:")
-pprint(response['email_input'])
+from sample_emails import sample_emails
 
-print("\nMessages:")
-#pprint(response["messages"])
-for msg in response["messages"]:
-    print(f"{msg.type}: {msg}")
-    print("="*20)
+def main():
+    parser = argparse.ArgumentParser(description='Process email with configurable recipient.')
+    parser.add_argument(
+        '--sender',
+        type=str,
+        required=True,
+        help='Name of the sample email sender (default: alice)'
+    )
+
+    parser.add_argument(
+        '--recipient',
+        type=str,
+        default="joe",
+        help='Name of the sample email recipient (default: joe)'
+    )
+    args = parser.parse_args()
+
+    sender = sample_emails[args.sender]
+    memory_config={"configurable": {"langgraph_user_id": args.recipient}}
+    response = email_agent.invoke({"email_input": sender}, config=memory_config)
+
+    from pprint import pprint
+    print("\nEmail input:")
+    pprint(response['email_input'])
+
+    print("\nMessages:")
+    #pprint(response["messages"])
+    for msg in response["messages"]:
+        print(f"{msg.type}: {msg}")
+        print("="*20)
+
+if __name__ == "__main__":
+    main()
+
+    #TODO: Try to dump the memory for "joe", not working.
+    print("-------"*20)
+    print("Checking memory...")
+    namespace=(
+        "email_assistant",
+        "joe",
+    )
+    result = store.get(namespace, "collection")
+    from pprint import pprint
+    pprint(result)
