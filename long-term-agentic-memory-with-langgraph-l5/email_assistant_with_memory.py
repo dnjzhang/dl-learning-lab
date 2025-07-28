@@ -392,9 +392,17 @@ if __name__ == "__main__":
     print("-------"*20)
     print("Checking memory...")
     namespace=(
-        "email_assistant",
         "joe",
     )
-    result = store.get(namespace, "collection")
+    result = store.search(namespace, query="list all")
     from pprint import pprint
     pprint(result)
+
+    print("List namespaces")
+    s = store.list_namespaces()
+    pprint(s)
+    print("-------"*20)
+
+
+
+
