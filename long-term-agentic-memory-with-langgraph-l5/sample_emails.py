@@ -1,13 +1,12 @@
-
+#!/usr/bin/env python
+# coding: utf-8
 
 alice_smith_email = {
     "author": "Alice Smith <alice.smith@company.com>",
     "to": "Joe Cutler <joe.cutler@company.com>",
     "subject": "Quick question about API documentation",
     "email_thread": """
-Hi John,
-
-I was reviewing the API documentation for the new authentication service and noticed a few endpoints seem to be missing from the specs. Could you help clarify if this was intentional or if we should update the docs?
+Hi John, I was reviewing the API documentation for the new authentication service and noticed a few endpoints seem to be missing from the specs. Could you help clarify if this was intentional or if we should update the docs?
 
 Specifically, I'm looking at:
 - /auth/refresh
@@ -49,4 +48,10 @@ dan_long_email = {
 sample_emails = { "alice": alice_smith_email,
                   "jay": jay_wong_email,
                   "dan": dan_long_email,}
+
+
+if __name__ == "__main__":
+    for sender, email in sample_emails.items():
+        print(f"From <{sender}>: {email['email_thread'][:20]}...")
+        print("=========")
 

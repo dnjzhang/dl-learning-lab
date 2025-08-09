@@ -360,7 +360,7 @@ def main():
         '--sender',
         type=str,
         required=True,
-        help='Name of the sample email sender (default: alice)'
+        help='Name of the sample email sender (Run sample_emails.py to find out the email sender.  default: alice)'
     )
 
     parser.add_argument(
